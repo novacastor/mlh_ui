@@ -1,0 +1,83 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: 'DM Sans Variable', ui-sans-serif, system-ui, sans-serif;
+
+  --color-background: oklch(0.13 0.02 270);
+  --color-foreground: oklch(0.97 0.01 270);
+  --color-muted: oklch(0.65 0.02 270);
+  --color-border: oklch(1 0 0 / 0.08);
+  --color-card: oklch(0.17 0.02 270);
+  --color-card-elevated: oklch(0.2 0.03 270);
+  --color-primary: oklch(0.72 0.17 265);
+  --color-primary-foreground: oklch(0.13 0.02 270);
+  --color-accent: oklch(0.78 0.14 175);
+  --color-accent-muted: oklch(0.78 0.14 175 / 0.15);
+  --color-danger: oklch(0.65 0.2 25);
+  --color-success: oklch(0.75 0.14 155);
+
+  --radius-lg: 1rem;
+  --radius-xl: 1.25rem;
+  --radius-2xl: 1.5rem;
+
+  --shadow-soft: 0 1px 0 oklch(1 0 0 / 0.06), 0 24px 48px -12px oklch(0 0 0 / 0.45);
+  --shadow-glow: 0 0 0 1px oklch(1 0 0 / 0.06), 0 0 48px -8px oklch(0.72 0.17 265 / 0.35);
+}
+
+@layer base {
+  html {
+    @apply antialiased;
+    font-family: var(--font-sans);
+  }
+  body {
+    @apply bg-background text-foreground min-h-dvh;
+    background-image:
+      radial-gradient(ellipse 120% 80% at 50% -20%, oklch(0.35 0.12 265 / 0.35), transparent),
+      radial-gradient(ellipse 60% 40% at 100% 50%, oklch(0.3 0.08 200 / 0.12), transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@keyframes graph-edge-dash {
+  to {
+    stroke-dashoffset: -40;
+  }
+}
+
+@keyframes graph-node-pulse {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 0.85;
+  }
+}
+
+.graph-edge-flow {
+  stroke-dasharray: 8 8;
+  animation: graph-edge-dash 1.6s linear infinite;
+}
+
+.graph-pulse {
+  animation: graph-node-pulse 2.2s ease-in-out infinite;
+}
+
+.react-flow__controls-button {
+  color: var(--color-foreground);
+  background: transparent;
+  border-color: oklch(1 0 0 / 0.12) !important;
+}
+
+.react-flow__controls-button:hover {
+  background: oklch(1 0 0 / 0.06);
+}

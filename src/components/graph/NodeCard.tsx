@@ -6,6 +6,7 @@ import type { GraphNodeModel } from '../../lib/learningGraph'
 export type LearningNodeData = GraphNodeModel & {
   [key: string]: unknown
   onOpenNode: (nodeId: string) => void
+  onDeleteNode?: (nodeId: string) => void
 }
 
 function stateLabel(state: GraphNodeModel['visualState']): string {
@@ -69,6 +70,21 @@ export const NodeCard = memo(function NodeCard({ data, selected }: NodeProps) {
         <span className="absolute -right-2 -top-2 rounded-full border border-accent/55 bg-accent/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-accent">
           Recommended
         </span>
+      ) : null}
+
+      {nodeData.onDeleteNode ? (
+        <button
+          type="button"
+          className="absolute right-2 top-2 rounded-md border border-danger/35 bg-danger/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.1em] text-danger opacity-0 transition hover:bg-danger/20 group-hover:opacity-100"
+          onClick={(event) => {
+            event.stopPropagation()
+            nodeData.onDeleteNode?.(nodeData.id)
+          }}
+          onKeyDown={(event) => event.stopPropagation()}
+          aria-label={`Delete ${nodeData.id}`}
+        >
+          Delete
+        </button>
       ) : null}
 
       {nodeData.isFrontier ? (

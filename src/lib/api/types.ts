@@ -7,6 +7,7 @@ export type LearningSessionStatus =
   | 'evaluating'
   | 'completed'
   | 'error'
+  | 'archived'
 
 export type CurrentPhase = 'root' | 'lesson' | 'evaluator' | 'advancing' | 'completed'
 
@@ -35,8 +36,8 @@ export interface RegisterRequest {
 export interface UserProfile {
   id: number
   email: string
-  username: string
-  created_at: string
+  username: string | null
+  created_at: string | null
 }
 
 export interface PatchProfileRequest {
@@ -45,7 +46,7 @@ export interface PatchProfileRequest {
 
 export interface StartLearningRequest {
   topic: string
-  course_mode?: string
+  course_mode?: 'detailed' | 'micro'
   traversal_mode?: 'dfs' | 'bfs'
 }
 
@@ -69,9 +70,10 @@ export interface SessionsListResponse {
 
 export interface LearningStatusResponse {
   session_id: string
-  topic: string
-  status: LearningSessionStatus
-  current_phase: CurrentPhase
+  topic?: string
+  status: LearningSessionStatus | string
+  current_phase?: CurrentPhase | string | null
+  error_message?: string | null
 }
 
 export interface TutorContent {
@@ -110,16 +112,16 @@ export interface CuratorContent {
 
 export interface LessonResponse {
   session_id: string
-  node_id: string
+  node_id: string | null
   is_remediation: boolean
-  parent_node_id: string | null
-  depth: number
-  node_kind: string
+  parent_node_id?: string | null
+  depth?: number | null
+  node_kind?: string | null
   path_from_root: string[]
-  is_math_heavy: boolean
-  is_expanded: boolean
-  tutor_content: TutorContent
-  curator_content: CuratorContent
+  is_math_heavy?: boolean | null
+  is_expanded?: boolean | null
+  tutor_content: TutorContent | null
+  curator_content: CuratorContent | null
 }
 
 export interface QuizQuestion {
@@ -137,15 +139,6 @@ export interface QuizResponse {
   questions: QuizQuestion[]
 }
 
-export interface EvaluateRequest {
-  answers: number[]
-}
-
-export interface EvaluateAckResponse {
-  status: string
-  message: string
-}
-
 export interface QuestionResult {
   question_id: string
   question: string
@@ -155,7 +148,7 @@ export interface QuestionResult {
   is_correct: boolean
 }
 
-export type EvaluationNextAction = 'next_topic' | 'remediation' | 'completed'
+export type EvaluationNextAction = 'next_topic' | 'remediation' | 'completed' | 'pending'
 
 export interface EvaluationResponse {
   score: number
@@ -192,7 +185,7 @@ export interface NextActionResponse {
   previous_node: string | null
   recommended_node: string | null
   recommendation_reason: string | null
-  recommendation_factors: Record<string, number> | null
+  recommendation_factors: Record<string, unknown> | null
   required_input: string | null
   parent_node_id?: string | null
   depth?: number
@@ -214,7 +207,7 @@ export interface ChoicesResponse {
   waiting_on: string[]
   recommended_node: string | null
   recommendation_reason: string | null
-  recommendation_factors: Record<string, number> | null
+  recommendation_factors: Record<string, unknown> | null
   parent_node_id?: string | null
   depth?: number
   node_kind?: string
@@ -230,7 +223,7 @@ export interface ContinueRequest {
   client_request_id?: string
 }
 
-export type ContinueRequestStatus = 'accepted' | 'needs_input' | string
+export type ContinueRequestStatus = 'accepted' | 'duplicate' | 'in_progress' | null
 
 export interface ContinueResponse {
   session_id: string
@@ -241,9 +234,9 @@ export interface ContinueResponse {
   options: string[]
   recommended_node: string | null
   recommendation_reason: string | null
-  recommendation_factors: Record<string, number> | null
-  request_status: ContinueRequestStatus
-  request_id: string | null
+  recommendation_factors: Record<string, unknown> | null
+  request_status?: ContinueRequestStatus
+  request_id?: string | null
   required_input: string | null
   parent_node_id?: string | null
   depth?: number
@@ -284,17 +277,17 @@ export interface WorkflowNodeCatalogItem extends NodeHierarchyMeta {
 export interface WorkflowResponse {
   session_id: string
   status: LearningSessionStatus | string
-  current_phase: CurrentPhase | string
+  current_phase: CurrentPhase | string | null
   topic: string
   current_node: string | null
   journey_mode: string
   traversal_mode: string
   waiting_on: string[]
-  next_action: string
+  next_action: string | null
   options: string[]
   recommended_node: string | null
   recommendation_reason?: string | null
-  recommendation_factors?: Record<string, number> | null
+  recommendation_factors?: Record<string, unknown> | null
   lesson_ready: boolean
   quiz_ready: boolean
   evaluation_ready: boolean

@@ -11,10 +11,21 @@ import { Modal } from '../components/ui/Modal'
 import { ProgressBar } from '../components/ui/ProgressBar'
 import { Skeleton } from '../components/ui/Skeleton'
 import { Badge } from '../components/ui/Badge'
+import { Select } from '../components/ui/Select'
 import { useSessionsList } from '../hooks/useLearningQueries'
 import * as learningApi from '../lib/api/learning'
 import { ApiError } from '../lib/api/types'
 import { learningKeys } from '../lib/queryKeys'
+
+function sessionStatusTone(status: string): 'default' | 'primary' | 'accent' | 'success' | 'warning' | 'danger' {
+  const normalized = status.toLowerCase()
+  if (normalized === 'ready') return 'success'
+  if (normalized === 'running' || normalized === 'initializing') return 'warning'
+  if (normalized === 'evaluating') return 'primary'
+  if (normalized === 'completed') return 'accent'
+  if (normalized === 'error') return 'danger'
+  return 'default'
+}
 
 export function SessionsPage() {
   const navigate = useNavigate()
@@ -22,14 +33,22 @@ export function SessionsPage() {
   const { data, isLoading, isError, refetch } = useSessionsList()
   const [modalOpen, setModalOpen] = useState(false)
   const [topic, setTopic] = useState('')
+  const [courseMode, setCourseMode] = useState<'detailed' | 'micro'>('detailed')
+  const [traversalMode, setTraversalMode] = useState<'dfs' | 'bfs'>('dfs')
 
   const startMutation = useMutation({
-    mutationFn: (t: string) => learningApi.startLearning({ topic: t }),
+    mutationFn: (payload: {
+      topic: string
+      course_mode: 'detailed' | 'micro'
+      traversal_mode: 'dfs' | 'bfs'
+    }) => learningApi.startLearning(payload),
     onSuccess: (res) => {
       toast.success('Session started')
       void queryClient.invalidateQueries({ queryKey: learningKeys.sessions() })
       setModalOpen(false)
       setTopic('')
+      setCourseMode('detailed')
+      setTraversalMode('dfs')
       navigate(`/sessions/${res.session_id}`)
     },
     onError: (err: unknown) => {
@@ -50,6 +69,10 @@ export function SessionsPage() {
     onError: () => toast.error('Could not archive session'),
   })
 
+  const liveSessionCount =
+    data?.sessions.filter((session) => !['completed', 'archived'].includes(session.status.toLowerCase())).length ??
+    0
+
   return (
     <AppShell
       actions={
@@ -69,6 +92,11 @@ export function SessionsPage() {
         <p className="mt-2 max-w-xl text-muted">
           Resume where you left off or begin a new adaptive path. The backend keeps state; you stay in flow.
         </p>
+        <div className="mt-4 flex flex-wrap gap-2">
+          <Badge tone="primary">Total: {data?.total ?? 0}</Badge>
+          <Badge tone="accent">Live: {liveSessionCount}</Badge>
+          <Badge tone="success">Ready: {data?.sessions.filter((s) => s.status === 'ready').length ?? 0}</Badge>
+        </div>
       </div>
 
       {isLoading ? (
@@ -127,7 +155,7 @@ export function SessionsPage() {
                       {new Date(s.created_at).toLocaleString()}
                     </p>
                   </div>
-                  <Badge tone="default">{s.status}</Badge>
+                  <Badge tone={sessionStatusTone(s.status)}>{s.status}</Badge>
                 </div>
                 <div className="mt-4">
                   <ProgressBar value={s.overall_progress} aria-label={`Progress for ${s.topic}`} />
@@ -163,7 +191,14 @@ export function SessionsPage() {
               Cancel
             </Button>
             <Button
-              onClick={() => topic.trim() && startMutation.mutate(topic.trim())}
+              onClick={() =>
+                topic.trim() &&
+                startMutation.mutate({
+                  topic: topic.trim(),
+                  course_mode: courseMode,
+                  traversal_mode: traversalMode,
+                })
+              }
               isLoading={startMutation.isPending}
               disabled={!topic.trim()}
             >
@@ -178,6 +213,44 @@ export function SessionsPage() {
           value={topic}
           onChange={(e) => setTopic(e.target.value)}
         />
+        <div className="mt-4 rounded-2xl border border-border/70 bg-card/30 p-4">
+          <p className="text-xs uppercase tracking-[0.14em] text-muted">Session setup</p>
+          <div className="mt-3 grid gap-4 md:grid-cols-2">
+            <Select
+              label="Course mode"
+              value={courseMode}
+              onChange={(e) => setCourseMode(e.target.value as 'detailed' | 'micro')}
+              helperText={
+                courseMode === 'detailed'
+                  ? 'Long-form explanations and deeper context.'
+                  : 'Compact lessons focused on quick iteration.'
+              }
+              options={[
+                { value: 'detailed', label: 'Detailed' },
+                { value: 'micro', label: 'Micro' },
+              ]}
+            />
+
+            <Select
+              label="Traversal mode"
+              value={traversalMode}
+              onChange={(e) => setTraversalMode(e.target.value as 'dfs' | 'bfs')}
+              helperText={
+                traversalMode === 'dfs'
+                  ? 'Go deep into one branch before switching.'
+                  : 'Explore breadth across branches earlier.'
+              }
+              options={[
+                { value: 'dfs', label: 'DFS' },
+                { value: 'bfs', label: 'BFS' },
+              ]}
+            />
+          </div>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Badge tone="primary">Mode: {courseMode}</Badge>
+            <Badge tone="accent">Traversal: {traversalMode}</Badge>
+          </div>
+        </div>
       </Modal>
     </AppShell>
   )

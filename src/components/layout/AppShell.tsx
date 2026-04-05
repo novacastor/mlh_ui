@@ -20,7 +20,7 @@ export function AppShell({ children, title, actions, fullBleed = false }: AppShe
         initial={{ opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
-        className="sticky top-0 z-40 border-b border-border/80 bg-background/75 backdrop-blur-xl"
+        className="sticky top-0 z-40 border-b border-border/80 bg-[linear-gradient(180deg,oklch(0.14_0.03_270_/_0.95),oklch(0.13_0.02_270_/_0.86))] backdrop-blur-xl"
       >
         <div className="mx-auto flex h-16 max-w-[1200px] items-center justify-between px-6 md:px-8">
           <Link to="/" className="group flex items-center gap-2">
@@ -36,7 +36,7 @@ export function AppShell({ children, title, actions, fullBleed = false }: AppShe
             {actions}
             {isAuthenticated && user ? (
               <>
-                <span className="hidden text-sm text-muted md:inline">{user.username}</span>
+                <span className="hidden text-sm text-muted md:inline">{user.username ?? user.email}</span>
                 <Button variant="ghost" className="!px-3 !py-2 text-xs" onClick={() => logout()}>
                   Sign out
                 </Button>

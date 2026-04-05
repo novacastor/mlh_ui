@@ -20,6 +20,7 @@ type GraphCanvasProps = {
   edges: GraphEdgeModel[]
   selectedNodeId: string | null
   onSelectNode: (nodeId: string) => void
+  onDeleteNode?: (nodeId: string) => void
   onHoverNode?: (nodeId: string | null) => void
   className?: string
 }
@@ -37,6 +38,7 @@ function GraphCanvasInner({
   edges,
   selectedNodeId,
   onSelectNode,
+  onDeleteNode,
   onHoverNode,
   className,
 }: GraphCanvasProps) {
@@ -67,12 +69,13 @@ function GraphCanvasInner({
         data: {
           ...node,
           onOpenNode: onSelectNode,
+          onDeleteNode,
         } as Record<string, unknown>,
         draggable: true,
         selectable: true,
         selected: selectedNodeId === node.id,
       })),
-    [nodes, onSelectNode, positionScale, selectedNodeId],
+    [nodes, onDeleteNode, onSelectNode, positionScale, selectedNodeId],
   )
 
   const derivedEdges = useMemo<Array<Edge>>(

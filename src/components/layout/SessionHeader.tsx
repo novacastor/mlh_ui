@@ -1,13 +1,17 @@
 import { Badge } from '../ui/Badge'
 import type { LearningSessionStatus } from '../../lib/api/types'
 
-const statusTone: Record<string, 'default' | 'primary' | 'accent' | 'success' | 'warning'> = {
+const statusTone: Record<
+  string,
+  'default' | 'primary' | 'accent' | 'success' | 'warning' | 'danger'
+> = {
   ready: 'success',
   running: 'warning',
   initializing: 'warning',
   evaluating: 'primary',
   completed: 'accent',
-  error: 'default',
+  error: 'danger',
+  archived: 'default',
 }
 
 type SessionHeaderProps = {

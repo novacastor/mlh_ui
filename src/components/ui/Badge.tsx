@@ -6,6 +6,7 @@ const tones: Record<string, string> = {
   accent: 'bg-accent-muted text-accent border border-accent/20',
   success: 'bg-success/15 text-success border border-success/25',
   warning: 'bg-amber-500/15 text-amber-200 border border-amber-500/25',
+  danger: 'bg-danger/15 text-danger border border-danger/30',
 }
 
 type BadgeProps = HTMLAttributes<HTMLSpanElement> & {

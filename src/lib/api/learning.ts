@@ -4,8 +4,6 @@ import type {
   ChoicesResponse,
   ContinueRequest,
   ContinueResponse,
-  EvaluateAckResponse,
-  EvaluateRequest,
   EvaluationResponse,
   LessonResponse,
   LearningStatusResponse,
@@ -40,8 +38,9 @@ export async function getStatus(sessionId: string): Promise<LearningStatusRespon
   return apiFetch<LearningStatusResponse>(`/learning/${encodeURIComponent(sessionId)}/status`)
 }
 
-export async function getLesson(sessionId: string): Promise<LessonResponse> {
-  return apiFetch<LessonResponse>(`/learning/${encodeURIComponent(sessionId)}/lesson`)
+export async function getLesson(sessionId: string, nodeId?: string): Promise<LessonResponse> {
+  const q = nodeId ? `?${new URLSearchParams({ node_id: nodeId }).toString()}` : ''
+  return apiFetch<LessonResponse>(`/learning/${encodeURIComponent(sessionId)}/lesson${q}`)
 }
 
 export async function getQuiz(sessionId: string): Promise<QuizResponse> {
@@ -50,13 +49,6 @@ export async function getQuiz(sessionId: string): Promise<QuizResponse> {
 
 export async function getEvaluation(sessionId: string): Promise<EvaluationResponse> {
   return apiFetch<EvaluationResponse>(`/learning/${encodeURIComponent(sessionId)}/evaluation`)
-}
-
-export async function evaluate(sessionId: string, body: EvaluateRequest): Promise<EvaluateAckResponse> {
-  return apiFetch<EvaluateAckResponse>(`/learning/${encodeURIComponent(sessionId)}/evaluate`, {
-    method: 'POST',
-    body,
-  })
 }
 
 export async function getNextAction(sessionId: string): Promise<NextActionResponse> {
@@ -69,16 +61,6 @@ export async function getChoices(sessionId: string): Promise<ChoicesResponse> {
 
 export async function getWorkflow(sessionId: string): Promise<WorkflowResponse> {
   return apiFetch<WorkflowResponse>(`/learning/${encodeURIComponent(sessionId)}/workflow`)
-}
-
-export async function postNext(
-  sessionId: string,
-  body: { selected_node?: string; traversal_mode?: string } = {},
-): Promise<{ status: string; message: string }> {
-  return apiFetch(`/learning/${encodeURIComponent(sessionId)}/next`, {
-    method: 'POST',
-    body,
-  })
 }
 
 export async function postContinue(

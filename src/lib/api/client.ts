@@ -135,10 +135,29 @@ export async function apiFetch<T>(path: string, options: FetchOptions = {}): Pro
 
 function extractErrorMessage(payload: unknown): string | null {
   if (!payload || typeof payload !== 'object') return null
-  const d = 'detail' in payload ? (payload as { detail: unknown }).detail : payload
-  if (typeof d === 'string') return d
-  if (d && typeof d === 'object' && 'message' in d) {
-    return String((d as { message: string }).message)
+
+  // Preferred envelope: { error: { message } }
+  if ('error' in payload) {
+    const err = (payload as { error: unknown }).error
+    if (typeof err === 'string') return err
+    if (err && typeof err === 'object' && 'message' in err) {
+      return String((err as { message: unknown }).message ?? '')
+    }
   }
+
+  // Legacy envelope: { detail } or { detail: { message } }
+  if ('detail' in payload) {
+    const detail = (payload as { detail: unknown }).detail
+    if (typeof detail === 'string') return detail
+    if (detail && typeof detail === 'object' && 'message' in detail) {
+      return String((detail as { message: unknown }).message ?? '')
+    }
+  }
+
+  if ('message' in payload) {
+    const message = (payload as { message: unknown }).message
+    if (typeof message === 'string') return message
+  }
+
   return null
 }

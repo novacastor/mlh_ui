@@ -258,7 +258,7 @@ export function buildLearningGraphModel(input: {
       const isFrontier = frontierSet.has(node.id)
       const visualState = resolveVisualState(node.status, isCurrent, isFrontier)
       const lessonSnippet =
-        lesson && lesson.node_id === node.id
+        lesson && lesson.node_id === node.id && lesson.tutor_content
           ? lesson.tutor_content.explanation.slice(0, 140)
           : 'Open this node to review objective, explanation, examples, and practice.'
       const quizLabel =

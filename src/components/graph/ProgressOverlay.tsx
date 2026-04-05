@@ -14,13 +14,24 @@ type ProgressOverlayProps = {
 
 function actionLabel(nextAction: NextActionResponse | undefined): string {
   if (!nextAction) return 'Continue'
-  if (nextAction.required_input === 'answers') return 'Open quiz'
-  if (nextAction.required_input === 'selected_node') return 'Choose branch'
   if (nextAction.required_input === 'selected_node' && nextAction.recommended_node) {
     return `Take ${nextAction.recommended_node}`
   }
+  if (nextAction.required_input === 'answers') return 'Open quiz'
+  if (nextAction.required_input === 'selected_node') return 'Choose branch'
   if (nextAction.action === 'wait') return 'Waiting for backend'
   return 'Continue'
+}
+
+function summarizeFactors(
+  factors: Record<string, unknown> | null | undefined,
+): Array<{ key: string; value: string }> {
+  return Object.entries(factors ?? {})
+    .slice(0, 3)
+    .map(([key, value]) => ({
+      key,
+      value: typeof value === 'number' ? value.toFixed(2) : String(value),
+    }))
 }
 
 export function ProgressOverlay({
@@ -33,20 +44,25 @@ export function ProgressOverlay({
   onTakeRecommended,
 }: ProgressOverlayProps) {
   const progressPct = Math.round((progress?.overall_progress ?? 0) * 100)
+  const action = (nextAction?.action ?? '').toLowerCase()
   const processing =
     status?.status === 'initializing' || status?.status === 'running' || status?.status === 'evaluating'
+  const waiting = action === 'wait'
+  const blocked = action === 'blocked'
   const shouldTakeRecommended =
     nextAction?.required_input === 'selected_node' && !!nextAction.recommended_node
+  const recommendationFactors = summarizeFactors(nextAction?.recommendation_factors)
   const requiresPanelInput =
-    nextAction?.required_input === 'answers' || nextAction?.required_input === 'selected_node'
+    nextAction?.required_input === 'answers' ||
+    (nextAction?.required_input === 'selected_node' && !nextAction?.recommended_node)
 
   const handlePrimaryAction = () => {
-    if (requiresPanelInput) {
-      onOpenRequiredInputPanel()
-      return
-    }
     if (shouldTakeRecommended) {
       onTakeRecommended()
+      return
+    }
+    if (requiresPanelInput) {
+      onOpenRequiredInputPanel()
       return
     }
     onContinue()
@@ -85,6 +101,23 @@ export function ProgressOverlay({
         <p className="mt-2 hidden text-sm text-foreground/90 md:block">
           {nextAction?.message ?? 'Syncing session intent...'}
         </p>
+        {nextAction?.recommendation_reason ? (
+          <p className="mt-1 hidden text-xs text-muted md:block">
+            Recommendation: {nextAction.recommendation_reason}
+          </p>
+        ) : null}
+        {recommendationFactors.length ? (
+          <div className="mt-2 hidden flex-wrap gap-1.5 md:flex">
+            {recommendationFactors.map((item) => (
+              <span
+                key={item.key}
+                className="rounded-full border border-accent/25 bg-accent/10 px-2 py-0.5 text-[11px] text-foreground/90"
+              >
+                {item.key}: {item.value}
+              </span>
+            ))}
+          </div>
+        ) : null}
         {nextAction?.can_go_back && nextAction.previous_node ? (
           <p className="mt-2 hidden text-xs text-muted md:block">
             Backtrack available: <span className="text-foreground">{nextAction.previous_node}</span>
@@ -94,12 +127,12 @@ export function ProgressOverlay({
         <div className="mt-3 flex justify-end md:mt-4">
           <Button
             variant="primary"
-            disabled={processing}
+            disabled={processing || blocked}
             isLoading={isMutating}
             className="w-full md:w-auto"
             onClick={handlePrimaryAction}
           >
-            {processing ? 'Processing...' : actionLabel(nextAction)}
+            {processing ? 'Processing...' : blocked ? 'Blocked' : waiting ? 'Continue' : actionLabel(nextAction)}
           </Button>
         </div>
       </div>

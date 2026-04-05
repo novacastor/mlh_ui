@@ -183,7 +183,14 @@ function resolveEvaluationFromHistory(
 }
 
 function resolveLiveLesson(lesson: LessonResponse | undefined, nodeId: string): PanelLesson | null {
-  if (!lesson || lesson.node_id !== nodeId) return null
+  if (!lesson || lesson.node_id !== nodeId || !lesson.tutor_content) return null
+
+  const curatorContent = lesson.curator_content ?? {
+    articles: [],
+    videos: [],
+    courses: [],
+    references: [],
+  }
 
   return {
     source: 'live',
@@ -193,9 +200,9 @@ function resolveLiveLesson(lesson: LessonResponse | undefined, nodeId: string): 
     commonMisconception: lesson.tutor_content.common_misconception,
     practiceTask: lesson.tutor_content.practice_task,
     codeSnippet: lesson.tutor_content.code_snippet,
-    articles: lesson.curator_content.articles,
-    videos: lesson.curator_content.videos,
-    references: lesson.curator_content.references ?? [],
+    articles: curatorContent.articles,
+    videos: curatorContent.videos,
+    references: curatorContent.references ?? [],
   }
 }
 
@@ -272,7 +279,7 @@ export function ExpandedNodePanel({
               </button>
             </header>
 
-            <div className="grid flex-1 gap-0 overflow-hidden lg:grid-cols-[minmax(0,1fr)_380px]">
+            <div className="grid min-h-0 flex-1 gap-0 overflow-hidden lg:grid-cols-[minmax(0,1fr)_380px]">
               <div className="overflow-y-auto px-4 py-4 md:px-7 md:py-5">
                 <div className="flex flex-wrap gap-2">
                   <span className={`rounded-full border px-2 py-1 text-xs font-medium ${pillTone(node.visualState)}`}>
@@ -418,7 +425,7 @@ export function ExpandedNodePanel({
                 </div>
               </div>
 
-              <aside className="border-t border-border/70 p-4 pb-6 lg:border-l lg:border-t-0 lg:p-5">
+              <aside className="min-h-0 overflow-y-auto border-t border-border/70 p-4 pb-6 lg:border-l lg:border-t-0 lg:p-5">
                 <div className="space-y-3 rounded-2xl border border-border/70 bg-card/40 p-4">
                   <p className="text-xs uppercase tracking-[0.14em] text-muted">Session Intent</p>
                   <p className="text-sm text-foreground/90">{nextAction?.message ?? 'Syncing backend state...'}</p>
@@ -433,6 +440,8 @@ export function ExpandedNodePanel({
                       key={`${nextAction.current_node ?? 'none'}-${nextAction.recommended_node ?? 'none'}-${nextAction.traversal_mode}-${nextAction.options.join('|')}`}
                       options={nextAction.options}
                       recommendedNode={nextAction.recommended_node}
+                      recommendationReason={nextAction.recommendation_reason}
+                      recommendationFactors={nextAction.recommendation_factors}
                       initialTraversalMode={nextAction.traversal_mode === 'bfs' ? 'bfs' : 'dfs'}
                       isSubmitting={isSubmitting}
                       onChooseBranch={onChooseBranch}
@@ -467,6 +476,8 @@ export function ExpandedNodePanel({
 type BranchSelectorProps = {
   options: string[]
   recommendedNode: string | null
+  recommendationReason?: string | null
+  recommendationFactors?: Record<string, unknown> | null
   initialTraversalMode: 'dfs' | 'bfs'
   isSubmitting: boolean
   onChooseBranch: (payload: { selected_node?: string; traversal_mode?: string }) => void
@@ -475,12 +486,16 @@ type BranchSelectorProps = {
 function BranchSelector({
   options,
   recommendedNode,
+  recommendationReason,
+  recommendationFactors,
   initialTraversalMode,
   isSubmitting,
   onChooseBranch,
 }: BranchSelectorProps) {
   const [traversalMode, setTraversalMode] = useState<'dfs' | 'bfs'>(initialTraversalMode)
   const [selectedBranch, setSelectedBranch] = useState<string | null>(recommendedNode)
+
+  const factorEntries = Object.entries(recommendationFactors ?? {}).slice(0, 4)
 
   return (
     <section className="space-y-3 rounded-2xl border border-border/70 bg-white/[0.02] p-4">
@@ -503,6 +518,28 @@ function BranchSelector({
           ))}
         </div>
       </div>
+      {recommendedNode || recommendationReason || factorEntries.length ? (
+        <div className="rounded-xl border border-accent/30 bg-accent/10 p-3 text-xs text-foreground/90">
+          {recommendedNode ? (
+            <p>
+              <span className="font-medium text-accent">Recommended:</span> {recommendedNode}
+            </p>
+          ) : null}
+          {recommendationReason ? <p className="mt-1 text-muted">{recommendationReason}</p> : null}
+          {factorEntries.length ? (
+            <div className="mt-2 flex flex-wrap gap-1.5 text-muted">
+              {factorEntries.map(([key, value]) => (
+                <span
+                  key={key}
+                  className="rounded-full border border-accent/25 bg-accent/15 px-2 py-0.5 text-[11px]"
+                >
+                  {key}: {typeof value === 'number' ? value.toFixed(2) : String(value)}
+                </span>
+              ))}
+            </div>
+          ) : null}
+        </div>
+      ) : null}
       <div className="space-y-2">
         {options.map((option) => (
           <button
@@ -526,7 +563,7 @@ function BranchSelector({
           disabled={isSubmitting}
           onClick={() => onChooseBranch({ traversal_mode: traversalMode })}
         >
-          Auto pick
+          Use recommendation
         </Button>
         <Button
           isLoading={isSubmitting}

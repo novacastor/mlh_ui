@@ -42,10 +42,14 @@ export function LoginPage() {
         transition={{ duration: 0.35 }}
         className="mx-auto max-w-md"
       >
-        <Card>
-          <h1 className="text-2xl font-semibold tracking-tight">Sign in</h1>
-          <p className="mt-2 text-sm text-muted">Access your adaptive learning sessions.</p>
-          <form onSubmit={onSubmit} className="mt-8 space-y-4">
+        <Card className="overflow-hidden p-0">
+          <div className="border-b border-border/70 bg-[linear-gradient(140deg,oklch(0.24_0.08_265_/_0.45),oklch(0.2_0.05_175_/_0.25))] px-6 py-5">
+            <p className="text-xs uppercase tracking-[0.14em] text-muted">Welcome back</p>
+            <h1 className="mt-2 text-2xl font-semibold tracking-tight">Sign in</h1>
+            <p className="mt-1 text-sm text-foreground/85">Pick up right where your adaptive path left off.</p>
+          </div>
+          <div className="px-6 py-6">
+          <form onSubmit={onSubmit} className="space-y-4">
             <Input
               label="Email"
               type="email"
@@ -66,12 +70,16 @@ export function LoginPage() {
               Continue
             </Button>
           </form>
+          <div className="mt-5 rounded-xl border border-border/70 bg-card/45 p-3 text-xs text-muted">
+            Uses `POST /auth/login/json` and securely stores your bearer token for session APIs.
+          </div>
           <p className="mt-6 text-center text-sm text-muted">
             No account?{' '}
             <Link to="/register" className="font-medium text-primary hover:underline">
               Create one
             </Link>
           </p>
+          </div>
         </Card>
       </motion.div>
     </AppShell>

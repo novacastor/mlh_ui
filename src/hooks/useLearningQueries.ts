@@ -1,11 +1,22 @@
 import { useQuery } from '@tanstack/react-query'
 import * as learning from '../lib/api/learning'
-import type { LearningSessionStatus } from '../lib/api/types'
+import type { LearningSessionStatus, WorkflowResponse } from '../lib/api/types'
 import { learningKeys } from '../lib/queryKeys'
 
-function shouldPollStatus(status: LearningSessionStatus | undefined): boolean {
+function shouldPollStatus(status: LearningSessionStatus | string | undefined): boolean {
   if (!status) return true
   return ['initializing', 'running', 'evaluating'].includes(status)
+}
+
+function shouldPollWorkflow(workflow: WorkflowResponse | undefined): boolean {
+  if (!workflow) return true
+
+  if (['initializing', 'running', 'evaluating'].includes(workflow.status)) {
+    return true
+  }
+
+  const action = (workflow.next_action ?? '').toLowerCase()
+  return action === 'wait'
 }
 
 export function useLearningStatus(sessionId: string | undefined) {
@@ -25,6 +36,7 @@ export function useNextAction(sessionId: string | undefined, enabled = true) {
     queryKey: sessionId ? learningKeys.nextAction(sessionId) : ['learning', 'nextAction', 'noop'],
     queryFn: () => learning.getNextAction(sessionId!),
     enabled: !!sessionId && enabled,
+    refetchInterval: enabled ? 1800 : false,
   })
 }
 
@@ -41,14 +53,18 @@ export function useWorkflow(sessionId: string | undefined, enabled = true) {
     queryKey: sessionId ? learningKeys.workflow(sessionId) : ['learning', 'workflow', 'noop'],
     queryFn: () => learning.getWorkflow(sessionId!),
     enabled: !!sessionId && enabled,
+    refetchInterval: (q) => (shouldPollWorkflow(q.state.data) ? 1800 : false),
   })
 }
 
-export function useLesson(sessionId: string | undefined, enabled = true) {
+export function useLesson(sessionId: string | undefined, enabled = true, nodeId?: string) {
   return useQuery({
-    queryKey: sessionId ? learningKeys.lesson(sessionId) : ['learning', 'lesson', 'noop'],
-    queryFn: () => learning.getLesson(sessionId!),
+    queryKey: sessionId
+      ? [...learningKeys.lesson(sessionId), nodeId ?? 'current']
+      : ['learning', 'lesson', 'noop'],
+    queryFn: () => learning.getLesson(sessionId!, nodeId),
     enabled: !!sessionId && enabled,
+    retry: false,
   })
 }
 

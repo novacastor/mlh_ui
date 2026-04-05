@@ -44,10 +44,14 @@ export function RegisterPage() {
         transition={{ duration: 0.35 }}
         className="mx-auto max-w-md"
       >
-        <Card>
-          <h1 className="text-2xl font-semibold tracking-tight">Create account</h1>
-          <p className="mt-2 text-sm text-muted">Start a focused, state-driven learning journey.</p>
-          <form onSubmit={onSubmit} className="mt-8 space-y-4">
+        <Card className="overflow-hidden p-0">
+          <div className="border-b border-border/70 bg-[linear-gradient(140deg,oklch(0.24_0.08_175_/_0.35),oklch(0.19_0.05_265_/_0.35))] px-6 py-5">
+            <p className="text-xs uppercase tracking-[0.14em] text-muted">Get started</p>
+            <h1 className="mt-2 text-2xl font-semibold tracking-tight">Create account</h1>
+            <p className="mt-1 text-sm text-foreground/85">Spin up your first learning graph in under a minute.</p>
+          </div>
+          <div className="px-6 py-6">
+          <form onSubmit={onSubmit} className="space-y-4">
             <Input
               label="Email"
               type="email"
@@ -74,12 +78,16 @@ export function RegisterPage() {
               Register
             </Button>
           </form>
+          <div className="mt-5 rounded-xl border border-border/70 bg-card/45 p-3 text-xs text-muted">
+            `username` is optional. If omitted, backend auto-generates one from your email.
+          </div>
           <p className="mt-6 text-center text-sm text-muted">
             Already have an account?{' '}
             <Link to="/login" className="font-medium text-primary hover:underline">
               Sign in
             </Link>
           </p>
+          </div>
         </Card>
       </motion.div>
     </AppShell>

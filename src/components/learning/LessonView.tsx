@@ -8,6 +8,20 @@ type LessonViewProps = {
 
 export function LessonView({ lesson }: LessonViewProps) {
   const { tutor_content: t, curator_content: c } = lesson
+  const tutor = t ?? {
+    learning_objective: 'Learning objective not available yet.',
+    explanation: 'Explanation is not available yet for this node.',
+    examples: [] as string[],
+    common_misconception: 'No misconception note available yet.',
+    practice_task: 'No practice task available yet.',
+    code_snippet: '',
+  }
+  const curator = c ?? {
+    articles: [],
+    videos: [],
+    courses: [],
+    references: [],
+  }
 
   return (
     <div className="space-y-6">
@@ -23,27 +37,27 @@ export function LessonView({ lesson }: LessonViewProps) {
 
       <Card>
         <p className="text-xs font-medium uppercase tracking-widest text-muted">Objective</p>
-        <p className="mt-2 text-lg font-medium leading-snug">{t.learning_objective}</p>
+        <p className="mt-2 text-lg font-medium leading-snug">{tutor.learning_objective}</p>
         <div className="mt-6 space-y-4 text-sm leading-relaxed text-muted">
-          <p>{t.explanation}</p>
-          {t.examples?.length ? (
+          <p>{tutor.explanation}</p>
+          {tutor.examples?.length ? (
             <ul className="list-inside list-disc space-y-1">
-              {t.examples.map((ex, i) => (
+              {tutor.examples.map((ex, i) => (
                 <li key={`${i}-${ex.slice(0, 40)}`}>{ex}</li>
               ))}
             </ul>
           ) : null}
           <div className="rounded-xl border border-border/80 bg-white/[0.04] p-4">
             <p className="text-xs font-medium text-foreground">Common misconception</p>
-            <p className="mt-1">{t.common_misconception}</p>
+            <p className="mt-1">{tutor.common_misconception}</p>
           </div>
           <div>
             <p className="text-xs font-medium text-foreground">Practice</p>
-            <p className="mt-1">{t.practice_task}</p>
+            <p className="mt-1">{tutor.practice_task}</p>
           </div>
-          {t.code_snippet?.trim() ? (
+          {tutor.code_snippet?.trim() ? (
             <pre className="overflow-x-auto rounded-xl border border-border bg-black/40 p-4 text-xs text-foreground/90">
-              <code>{t.code_snippet}</code>
+              <code>{tutor.code_snippet}</code>
             </pre>
           ) : null}
         </div>
@@ -52,7 +66,7 @@ export function LessonView({ lesson }: LessonViewProps) {
       <Card>
         <p className="text-xs font-medium uppercase tracking-widest text-muted">Curated resources</p>
         <div className="mt-4 space-y-3">
-          {c.articles.map((a) => (
+          {curator.articles.map((a) => (
             <a
               key={a.url}
               href={a.url}
@@ -67,11 +81,11 @@ export function LessonView({ lesson }: LessonViewProps) {
               ) : null}
             </a>
           ))}
-          {c.videos?.length ? (
+          {curator.videos?.length ? (
             <div className="pt-2">
               <p className="mb-2 text-xs font-medium uppercase tracking-widest text-muted">Videos</p>
               <ul className="space-y-3">
-                {c.videos.map((v, i) => (
+                {curator.videos.map((v, i) => (
                   <li key={v.url ?? i}>
                     <a
                       href={v.url}
@@ -92,11 +106,11 @@ export function LessonView({ lesson }: LessonViewProps) {
               </ul>
             </div>
           ) : null}
-          {c.courses?.length ? (
+          {curator.courses?.length ? (
             <div className="pt-2">
               <p className="mb-2 text-xs font-medium uppercase tracking-widest text-muted">Courses</p>
               <ul className="space-y-3">
-                {c.courses.map((course, i) => (
+                {curator.courses.map((course, i) => (
                   <li key={course.url ?? `course-${i}`}>
                     {course.url ? (
                       <a
@@ -123,7 +137,7 @@ export function LessonView({ lesson }: LessonViewProps) {
               </ul>
             </div>
           ) : null}
-          {c.references?.map((r) => (
+          {curator.references?.map((r) => (
             <p key={r} className="text-sm text-muted">
               {r}
             </p>

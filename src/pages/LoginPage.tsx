@@ -70,9 +70,6 @@ export function LoginPage() {
               Continue
             </Button>
           </form>
-          <div className="mt-5 rounded-xl border border-border/70 bg-card/45 p-3 text-xs text-muted">
-            Uses `POST /auth/login/json` and securely stores your bearer token for session APIs.
-          </div>
           <p className="mt-6 text-center text-sm text-muted">
             No account?{' '}
             <Link to="/register" className="font-medium text-primary hover:underline">

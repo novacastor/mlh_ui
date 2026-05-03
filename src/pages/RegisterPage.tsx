@@ -79,7 +79,7 @@ export function RegisterPage() {
             </Button>
           </form>
           <div className="mt-5 rounded-xl border border-border/70 bg-card/45 p-3 text-xs text-muted">
-            `username` is optional. If omitted, backend auto-generates one from your email.
+            `username` is optional.
           </div>
           <p className="mt-6 text-center text-sm text-muted">
             Already have an account?{' '}
